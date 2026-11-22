@@ -111,6 +111,9 @@
   .lenyilo { background: none; border: none; padding: 4px 0; font-size: 13.5px; color: var(--accent); }
   .lenyilo::before { content: '▸ '; }
   .lenyilo.nyitva::before { content: '▾ '; }
+  .nem-gomb { background: var(--chip); color: var(--muted); border: none; border-radius: 9px; padding: 6px 11px; font-size: 13.5px; font-weight: 600; }
+  .kovetkezo .gombok { display: flex; gap: 8px; }
+  .kovetkezo .gombok .halv { background: none; border-color: rgba(255,255,255,.3); font-weight: 500; }
   .elrejt { margin-left: auto; background: none; border: none; color: var(--faint); font-size: 13px; padding: 4px 0; }
   .panel { margin-top: 6px; font-size: 14px; }
   .reszlet { white-space: pre-wrap; }
@@ -288,10 +291,13 @@
     t.checklist[i].kesz = el.checked; rajzol();
     api('pipalas', [KULCS, id, i, el.checked]).then(adatJott).catch(e => { hibaKezel(e); betolt(); });
   }
-  function elrejt(id, ertek) {
+  function elrejt(id, ertek, ok) {
     const t = ADAT.tetelek.find(x => x.id === id);
-    t.elrejtve = ertek; t.modosult = false; rajzol();
-    api('elrejtes', [KULCS, id, ertek]).then(adatJott).catch(e => { hibaKezel(e); betolt(); });
+    t.elrejtve = ertek; t.modosult = false;
+    if (ertek) t.elrejtesOka = ok || 'kesz'; else delete t.elrejtesOka;
+    rajzol();
+    if (ertek) uzenet(ok === 'nemerdekel' ? 'Áttéve: Kész / múlt → Nem érdekel' : '✓ Áttéve: Kész / múlt');
+    api('elrejtes', [KULCS, id, ertek, ok || 'kesz']).then(adatJott).catch(e => { hibaKezel(e); betolt(); });
   }
   function nyit(k) { NYITOTT.has(k) ? NYITOTT.delete(k) : NYITOTT.add(k); rajzol(); }
   function fulValt(el) {
@@ -384,7 +390,8 @@
       lista(t) +
       '<div class="muveletek">' +
         (archiv ? '<button class="gomb" style="padding:5px 10px;font-size:13px" onclick="elrejt(\'' + t.id + '\', false)">Visszaállít</button>'
-                : '<button class="kesz-gomb" onclick="elrejt(\'' + t.id + '\', true)">✓ Megcsináltam</button>') +
+                : '<button class="kesz-gomb" onclick="elrejt(\'' + t.id + '\', true, \'kesz\')">✓ Megcsináltam</button>' +
+                  '<button class="nem-gomb" onclick="elrejt(\'' + t.id + '\', true, \'nemerdekel\')">Nem érdekel</button>') +
         l.gombok + naptarGomb(t) + '</div>' + l.panelek + '</div>';
   }
 
@@ -397,7 +404,7 @@
       (al ? '<div class="alcim">' + al + '</div>' : '') +
       '<div class="muveletek">' + l.gombok + naptarGomb(t) +
         (archiv ? '<button class="elrejt" onclick="elrejt(\'' + t.id + '\', false)">Visszaállít</button>'
-                : '<button class="elrejt" onclick="elrejt(\'' + t.id + '\', true)">Elrejt ✕</button>') +
+                : '<button class="elrejt" onclick="elrejt(\'' + t.id + '\', true, \'nemerdekel\')">Nem érdekel ✕</button>') +
       '</div>' + l.panelek + '</div>';
   }
 
@@ -559,7 +566,8 @@
           '<div class="mikor">' + nagybetu(napNev(h)) + (ido ? ' ' + esc(ido) : '') + '</div>' +
           '<div class="mit">' + esc(kov.teendo || kov.cim) + '</div>' +
           (kov.teendo ? '<div class="alcim">' + esc(kov.cim) + ' · ' + rovidDatum(h) + '</div>' : '<div class="alcim">' + rovidDatum(h) + '</div>') +
-          '<button onclick="elrejt(\'' + kov.id + '\', true)">✓ Megcsináltam</button></div>';
+          '<div class="gombok"><button onclick="elrejt(\'' + kov.id + '\', true, \'kesz\')">✓ Megcsináltam</button>' +
+          '<button class="halv" onclick="elrejt(\'' + kov.id + '\', true, \'nemerdekel\')">Nem érdekel</button></div></div>';
       }
 
       // napokra bontás
@@ -603,8 +611,15 @@
     if (FUL === 'kesz') {
       const archiv = ADAT.tetelek.filter(t => !aktivE(t))
         .sort((a, b) => (helyNap(b) || '').localeCompare(helyNap(a) || ''));
-      if (!archiv.length) html += '<div class="ures">Itt jelennek meg az elvégzett és lejárt tételek.</div>';
-      html += archiv.map(t => kartya(t, true)).join('');
+      const reszek = [
+        ['✓ Megcsinált', archiv.filter(t => t.elrejtve && t.elrejtesOka !== 'nemerdekel')],
+        ['Nem érdekel', archiv.filter(t => t.elrejtve && t.elrejtesOka === 'nemerdekel')],
+        ['Lejárt', archiv.filter(t => !t.elrejtve)]
+      ];
+      if (!archiv.length) html += '<div class="ures">Itt jelennek meg az elvégzett, félretett és lejárt tételek.</div>';
+      reszek.forEach(([nev, lista]) => {
+        if (lista.length) html += '<div class="csoport">' + nev + ' (' + lista.length + ')</div>' + lista.map(t => kartya(t, true)).join('');
+      });
     }
 
     if (ADAT.keret) {
