@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Iskola</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Iskola">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<meta name="theme-color" content="#1f4e79">
+<style>
+  :root {
+    --bg: #f3f5f8; --card: #ffffff; --text: #1b2430; --muted: #687385; --line: #e3e7ee;
+    --accent: #1f6feb; --event: #1f6feb; --todo: #d9480f; --info: #6b7280;
+    --warn-bg: #fff4e5; --warn: #b35c00; --ok: #2f9e44; --chip: #eef2f7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f141a; --card: #18202a; --text: #e8edf3; --muted: #93a0b2; --line: #2a3442;
+      --accent: #5aa2ff; --event: #5aa2ff; --todo: #ff8a4c; --info: #9aa4b2;
+      --warn-bg: #3a2a12; --warn: #ffb35c; --ok: #51cf66; --chip: #222c38;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { position: sticky; top: 0; z-index: 5; background: var(--bg);
+    padding: calc(14px + env(safe-area-inset-top)) 16px 8px; border-bottom: 1px solid var(--line); }
+  .fej { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  h1 { font-size: 20px; margin: 0; }
+  .frissitve { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .gomb { border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+  .gomb:disabled { opacity: .5; }
+  .fulek { display: flex; gap: 6px; margin-top: 10px; }
+  .ful { flex: 1; text-align: center; padding: 7px 0; border-radius: 9px; font-size: 14px;
+    background: var(--chip); color: var(--muted); border: none; }
+  .ful.aktiv { background: var(--accent); color: #fff; font-weight: 600; }
+  main { padding: 10px 12px 40px; max-width: 640px; margin: 0 auto; }
+  .csoport { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--muted); margin: 18px 4px 8px; }
+  .kartya { background: var(--card); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px;
+    border-left: 5px solid var(--event); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .kartya.teendo { border-left-color: var(--todo); }
+  .kartya.info { border-left-color: var(--info); }
+  .kartya.surgos { box-shadow: 0 0 0 2px var(--todo) inset, 0 1px 2px rgba(0,0,0,.05); }
+  .sor1 { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 4px; }
+  .chip { font-size: 12px; padding: 2px 8px; border-radius: 20px; background: var(--chip); color: var(--muted); }
+  .chip.nap { font-weight: 700; color: var(--text); }
+  .chip.forro { background: var(--todo); color: #fff; }
+  .chip.uj { background: var(--ok); color: #fff; }
+  .cim { font-size: 17px; font-weight: 650; margin: 2px 0 4px; }
+  .meta { font-size: 14px; color: var(--muted); }
+  .ruha { margin-top: 8px; padding: 7px 10px; border-radius: 9px; background: var(--warn-bg);
+    color: var(--warn); font-size: 14px; font-weight: 600; }
+  .lista { list-style: none; padding: 0; margin: 10px 0 2px; }
+  .lista li { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--line); }
+  .lista li:first-child { border-top: none; }
+  .lista input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--ok); }
+  .lista label { flex: 1; font-size: 15px; }
+  .lista li.kesz label { text-decoration: line-through; color: var(--muted); }
+  .halado { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .sav { flex: 1; height: 5px; border-radius: 3px; background: var(--chip); overflow: hidden; }
+  .sav > div { height: 100%; background: var(--ok); }
+  details { margin-top: 8px; font-size: 14px; }
+  summary { color: var(--accent); cursor: pointer; }
+  .reszlet { color: var(--text); margin-top: 6px; white-space: pre-wrap; }
+  .forras { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .also { display: flex; justify-content: flex-end; margin-top: 8px; }
+  .kicsi { font-size: 13px; padding: 5px 10px; }
+  .hiba { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin-top: 10px; }
+  .ures { text-align: center; color: var(--muted); padding: 40px 10px; }
+  .levelszoveg { white-space: pre-wrap; font-size: 13px; color: var(--muted); max-height: 320px; overflow: auto;
+    background: var(--chip); padding: 8px; border-radius: 8px; margin-top: 6px; }
+  .keret { margin: 26px 4px 0; padding: 12px 14px; border-radius: 12px; background: var(--card);
+    font-size: 13px; color: var(--muted); }
+  .keret .sor { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .keret b { color: var(--text); }
+  .keret .sav > div.sok { background: var(--todo); }
+  .toltes { text-align: center; color: var(--muted); padding: 50px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="fej">
+    <div>
+      <h1>🎒 Iskolai teendők</h1>
+      <div class="frissitve" id="frissitve">Betöltés…</div>
+    </div>
+    <button class="gomb" id="frissitGomb" onclick="frissitesMost()">↻ Frissítés</button>
+  </div>
+  <div class="fulek">
+    <button class="ful aktiv" data-ful="kozelgo" onclick="fulValt(this)">Közelgő</button>
+    <button class="ful" data-ful="levelek" onclick="fulValt(this)">Levelek</button>
+    <button class="ful" data-ful="archiv" onclick="fulValt(this)">Kész / múlt</button>
+  </div>
+</header>
+<main id="tartalom"><div class="toltes">Betöltés…</div></main>
+
+<script>
+  // ===== Ide kerül az Apps Script webalkalmazás címe (/exec végű) =====
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwLj1ReUxz4A-OMWXU5b181wxFdwHlxxcR_sSNnQnMMBTD5QsRzckbckS4l30Lbbrs/exec';
+
+  // A google.script.run helyett közvetlen hívás az Apps Script felé, sütik nélkül,
+  // így nem számít, hány Google-fiókkal vagy bejelentkezve.
+  const google = { script: { get run() { return futtato(); } } };
+  function futtato() {
+    let siker = () => {}, hiba = () => {};
+    const r = new Proxy({}, { get(_, nev) {
+      if (nev === 'withSuccessHandler') return f => { siker = f; return r; };
+      if (nev === 'withFailureHandler') return f => { hiba = f; return r; };
+      return (...args) => {
+        fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn: nev, args: args }), credentials: 'omit' })
+          .then(v => v.json())
+          .then(j => j.ok ? siker(j.eredmeny) : hiba(new Error(j.hiba)))
+          .catch(e => hiba(new Error('Nincs kapcsolat a szerverrel. (' + e.message + ')')));
+      };
+    }});
+    return r;
+  }
+
+  let KULCS = null;
+  try { KULCS = localStorage.getItem('iskolaKulcs'); } catch (e) {}
+  const NAPOK = ['vasárnap', 'hétfő', 'kedd', 'szerda', 'csütörtök', 'péntek', 'szombat'];
+  const HONAPOK = ['jan.', 'febr.', 'márc.', 'ápr.', 'máj.', 'jún.', 'júl.', 'aug.', 'szept.', 'okt.', 'nov.', 'dec.'];
+  let ADAT = null;
+  let FUL = 'kozelgo';
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function dt(s) { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function napKul(s) { return Math.round((dt(s) - dt(ADAT.ma)) / 864e5); }
+  function szepDatum(s) { const d = dt(s); return NAPOK[d.getDay()] + ', ' + HONAPOK[d.getMonth()] + ' ' + d.getDate() + '.'; }
+  function relativ(n) {
+    if (n === 0) return 'ma'; if (n === 1) return 'holnap'; if (n === 2) return 'holnapután';
+    if (n < 0) return Math.abs(n) + ' napja'; return n + ' nap múlva';
+  }
+  function kulcsDatum(t) { return t.tipus === 'teendo' && t.hatarido ? t.hatarido : (t.datum || t.hatarido); }
+
+  function hivas(fn, args, kesz) {
+    google.script.run
+      .withSuccessHandler(json => { ADAT = JSON.parse(json); kesz && kesz(); rajzol(); })
+      .withFailureHandler(e => { hibaKezel(e); kesz && kesz(); })[fn].apply(null, [KULCS].concat(args || []));
+  }
+
+  function betolt() { if (KULCS) hivas('adatokLekerese', []); }
+
+  function hibaKezel(e) {
+    if (/hozzáférés/i.test(e.message)) {   // lejárt / visszavont belépés
+      try { localStorage.removeItem('iskolaKulcs'); } catch (x) {}
+      KULCS = null; belepesMutat();
+    } else alert('Hiba: ' + e.message);
+  }
+
+  function belepesMutat(hiba) {
+    ADAT = null;
+    document.getElementById('frissitve').textContent = 'Belépés szükséges';
+    document.getElementById('tartalom').innerHTML =
+      '<div class="kartya" style="margin-top:30px">' +
+      '<div class="cim">🔒 Belépés</div>' +
+      '<div class="meta">Írd be a jelszót. A telefon megjegyzi, legközelebb nem kell.</div>' +
+      (hiba ? '<div class="hiba">' + esc(hiba) + '</div>' : '') +
+      '<input id="jelszo" type="password" placeholder="Jelszó" autocomplete="current-password" ' +
+      'style="width:100%;padding:12px;font-size:17px;border-radius:10px;border:1px solid var(--line);' +
+      'margin:14px 0;background:var(--bg);color:var(--text)">' +
+      '<button class="gomb" id="belepGomb" style="width:100%;background:var(--accent);color:#fff;border:none;padding:12px" ' +
+      'onclick="belep()">Belépés</button></div>';
+    const mezo = document.getElementById('jelszo');
+    mezo.addEventListener('keydown', e => { if (e.key === 'Enter') belep(); });
+    mezo.focus();
+  }
+
+  function belep() {
+    const g = document.getElementById('belepGomb');
+    g.disabled = true; g.textContent = 'Ellenőrzés…';
+    google.script.run
+      .withSuccessHandler(k => {
+        KULCS = k;
+        try { localStorage.setItem('iskolaKulcs', k); } catch (e) {}
+        document.getElementById('tartalom').innerHTML = '<div class="toltes">Betöltés…</div>';
+        betolt();
+      })
+      .withFailureHandler(e => belepesMutat(e.message))
+      .belepes(document.getElementById('jelszo').value);
+  }
+  function frissitesMost() {
+    if (!KULCS) return belepesMutat();
+    const g = document.getElementById('frissitGomb');
+    g.disabled = true; g.textContent = '… frissít';
+    hivas('frissitesMost', [], () => { g.disabled = false; g.textContent = '↻ Frissítés'; });
+  }
+  function fulValt(el) {
+    document.querySelectorAll('.ful').forEach(f => f.classList.toggle('aktiv', f === el));
+    FUL = el.dataset.ful; rajzol(); window.scrollTo(0, 0);
+  }
+
+  function pipal(id, i, el) {
+    const t = ADAT.tetelek.find(x => x.id === id);
+    t.checklist[i].kesz = el.checked;        // azonnal látszik
+    rajzol();
+    google.script.run.withSuccessHandler(j => { ADAT = JSON.parse(j); rajzol(); })
+      .withFailureHandler(e => { hibaKezel(e); betolt(); })
+      .pipalas(KULCS, id, i, el.checked);
+  }
+  function elrejt(id, ertek) {
+    const t = ADAT.tetelek.find(x => x.id === id);
+    t.elrejtve = ertek; t.modosult = false; rajzol();
+    google.script.run.withSuccessHandler(j => { ADAT = JSON.parse(j); rajzol(); })
+      .withFailureHandler(e => { hibaKezel(e); betolt(); })
+      .elrejtes(KULCS, id, ertek);
+  }
+
+  function kartya(t, archiv) {
+    const k = kulcsDatum(t);
+    const n = k ? napKul(k) : null;
+    const kesz = t.checklist.filter(c => c.kesz).length;
+    const osszes = t.checklist.length;
+    const mindKesz = osszes > 0 && kesz === osszes;
+    const surgos = !archiv && n !== null && n <= 2 && n >= 0 && !mindKesz && (t.tipus === 'teendo' || t.fontos || osszes > 0);
+
+    let chips = '';
+    if (t.datum) chips += '<span class="chip nap">' + esc(szepDatum(t.datum)) +
+      (t.veg_datum && t.veg_datum !== t.datum ? ' – ' + esc(szepDatum(t.veg_datum)) : '') + '</span>';
+    if (t.tipus === 'teendo' && t.hatarido) chips += '<span class="chip ' + (surgos ? 'forro' : '') + '">Határidő: ' + esc(szepDatum(t.hatarido)) + '</span>';
+    if (n !== null && !archiv) chips += '<span class="chip ' + (surgos ? 'forro' : '') + '">' + relativ(n) + '</span>';
+    if (t.fontos) chips += '<span class="chip forro">fontos</span>';
+    if (t.modosult && !archiv) chips += '<span class="chip uj">módosult</span>';
+    chips += '<span class="chip">' + ({ esemeny: 'esemény', teendo: 'teendő', info: 'infó' }[t.tipus]) + '</span>';
+
+    const meta = [t.idopont && '🕘 ' + esc(t.idopont), t.helyszin && '📍 ' + esc(t.helyszin)].filter(Boolean).join(' &nbsp; ');
+
+    let lista = '';
+    if (osszes) {
+      lista = '<ul class="lista">' + t.checklist.map((c, i) =>
+        '<li class="' + (c.kesz ? 'kesz' : '') + '"><input type="checkbox" id="c-' + t.id + '-' + i + '" ' +
+        (c.kesz ? 'checked' : '') + ' onchange="pipal(\'' + t.id + '\',' + i + ',this)">' +
+        '<label for="c-' + t.id + '-' + i + '">' + esc(c.szoveg) + '</label></li>').join('') + '</ul>' +
+        '<div class="halado"><div class="sav"><div style="width:' + Math.round(100 * kesz / osszes) + '%"></div></div>' +
+        kesz + '/' + osszes + '</div>';
+    }
+
+    const forrasok = (t.forrasok || []).map(f => esc(f.felado) + ': „' + esc(f.targy) + '”').join('<br>');
+
+    return '<div class="kartya ' + t.tipus + (surgos ? ' surgos' : '') + '">' +
+      '<div class="sor1">' + chips + '</div>' +
+      '<div class="cim">' + esc(t.cim) + '</div>' +
+      (meta ? '<div class="meta">' + meta + '</div>' : '') +
+      (t.ruhazat ? '<div class="ruha">👕 ' + esc(t.ruhazat) + '</div>' : '') +
+      lista +
+      (t.leiras || forrasok ? '<details><summary>Részletek</summary>' +
+        (t.leiras ? '<div class="reszlet">' + esc(t.leiras) + '</div>' : '') +
+        '<div class="forras">Forrás:<br>' + forrasok + '</div></details>' : '') +
+      '<div class="also">' + (archiv
+        ? '<button class="gomb kicsi" onclick="elrejt(\'' + t.id + '\', false)">Visszaállít</button>'
+        : '<button class="gomb kicsi" onclick="elrejt(\'' + t.id + '\', true)">✓ Kész, elrejt</button>') +
+      '</div></div>';
+  }
+
+  function rajzol() {
+    if (!ADAT) return;
+    const f = ADAT.frissitve ? new Date(ADAT.frissitve) : null;
+    document.getElementById('frissitve').textContent = f
+      ? 'Frissítve: ' + f.toLocaleString('hu-HU', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : 'Még nem volt frissítés';
+
+    let html = ADAT.utolsoHiba ? '<div class="hiba">⚠️ ' + esc(ADAT.utolsoHiba) + '</div>' : '';
+
+    if (FUL === 'kozelgo') {
+      const aktiv = ADAT.tetelek.filter(t => {
+        if (t.elrejtve) return false;
+        const vege = t.veg_datum || kulcsDatum(t);
+        return !vege || napKul(vege) >= 0;
+      });
+      const csoportok = [
+        ['Ma', t => kulcsDatum(t) && napKul(kulcsDatum(t)) <= 0],
+        ['Holnap', t => kulcsDatum(t) && napKul(kulcsDatum(t)) === 1],
+        ['A következő 7 napban', t => kulcsDatum(t) && napKul(kulcsDatum(t)) >= 2 && napKul(kulcsDatum(t)) <= 7],
+        ['Később', t => kulcsDatum(t) && napKul(kulcsDatum(t)) > 7],
+        ['Dátum nélkül', t => !kulcsDatum(t)]
+      ];
+      aktiv.sort((a, b) => (kulcsDatum(a) || '9999').localeCompare(kulcsDatum(b) || '9999'));
+      let volt = false;
+      csoportok.forEach(([nev, fn]) => {
+        const tagok = aktiv.filter(fn);
+        if (!tagok.length) return;
+        volt = true;
+        html += '<div class="csoport">' + nev + '</div>' + tagok.map(t => kartya(t, false)).join('');
+      });
+      if (!volt) html += '<div class="ures">🎉 Nincs közelgő teendő.</div>';
+    }
+
+    if (FUL === 'levelek') {
+      if (!ADAT.levelek.length) html += '<div class="ures">Még nincs feldolgozott levél.</div>';
+      ADAT.levelek.forEach(l => {
+        const d = new Date(l.datum);
+        html += '<div class="kartya info"><div class="sor1"><span class="chip nap">' +
+          esc(d.toLocaleDateString('hu-HU', { month: 'short', day: 'numeric', weekday: 'short' })) +
+          '</span><span class="chip">' + esc(l.felado) + '</span></div>' +
+          '<div class="cim">' + esc(l.targy) + '</div>' +
+          '<div class="meta">' + esc(l.osszefoglalo) + '</div>' +
+          '<details><summary>Eredeti levél</summary><div class="levelszoveg">' + esc(l.szoveg) + '</div></details></div>';
+      });
+    }
+
+    if (FUL === 'archiv') {
+      const archiv = ADAT.tetelek.filter(t => {
+        const vege = t.veg_datum || kulcsDatum(t);
+        return t.elrejtve || (vege && napKul(vege) < 0);
+      }).sort((a, b) => (kulcsDatum(b) || '').localeCompare(kulcsDatum(a) || ''));
+      if (!archiv.length) html += '<div class="ures">Itt jelennek meg az elvégzett és lejárt tételek.</div>';
+      html += archiv.map(t => kartya(t, true)).join('');
+    }
+
+    if (ADAT.keret) {
+      const k = ADAT.keret;
+      const marad = Math.max(0, k.keretFt - k.elkoltottFt);
+      const szazalek = Math.min(100, k.keretFt ? 100 * k.elkoltottFt / k.keretFt : 0);
+      const ft = x => (x < 10 ? x.toFixed(1).replace('.', ',') : Math.round(x).toLocaleString('hu-HU')) + ' Ft';
+      html += '<div class="keret">' +
+        '<div class="sor"><span>Gemini keret – ' + esc(new Date().toLocaleDateString('hu-HU', { month: 'long' })) + '</span>' +
+        '<span>Maradt: <b>~' + ft(marad) + '</b></span></div>' +
+        '<div class="sav"><div class="' + (szazalek > 80 ? 'sok' : '') + '" style="width:' + szazalek + '%"></div></div>' +
+        '<div class="sor" style="margin:6px 0 0"><span>Elköltve: ~' + ft(k.elkoltottFt) + ' / ' + ft(k.keretFt) + '</span>' +
+        '<span>' + k.hivasok + ' levél</span></div>' +
+        '<div style="margin-top:6px;font-size:11px">Becslés a felhasznált tokenek alapján. A pontos összeg a Google Cloud számlázásban látszik.</div>' +
+        '</div>';
+    }
+
+    document.getElementById('tartalom').innerHTML = html;
+  }
+
+  KULCS ? betolt() : belepesMutat();
+  // Ha nyitva marad a telefonon, 10 percenként újratölti az adatokat
+  setInterval(betolt, 10 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) betolt(); });
+</script>
+</body>
+</html>
